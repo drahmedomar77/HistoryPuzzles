@@ -19,7 +19,7 @@ object PuzzleData {
         HistoryOfSciencePuzzles.list
     ).flatten()
 
-    val allPuzzles: List<Puzzle> = puzzles
-
-    fun getAllPuzzles(): List<Puzzle> = puzzles
+    // خاصية واحدة فقط: Kotlin تولّد لها getAllPuzzles() تلقائياً،
+    // لذلك حُذفت الدالة اليدوية التي كانت تسبب تعارض الأسماء.
+    val allPuzzles: List<Puzzle> get() = puzzles
 }
