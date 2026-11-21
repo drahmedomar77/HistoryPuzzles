@@ -1,107 +1,61 @@
 package com.puzzles.history
 
-import android.app.Activity
-import android.content.Context
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.viewinterop.AndroidView
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdSize
-import com.google.android.gms.ads.AdView
-import com.google.android.gms.ads.LoadAdError
-import com.google.android.gms.ads.interstitial.InterstitialAd
-import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
-import com.google.android.gms.ads.rewarded.RewardedAd
-import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
+data class Puzzle(
+    val id: Int,
+    val category: String,
+    val question: String,
+    val options: List<String>,
+    val correctIndex: Int,
+    val hint: String,
+    val historicalFact: String
+)
 
-object AdMobManager {
-    const val BANNER_AD_UNIT_ID = "ca-app-pub-3940256099942544/6300978111"
-    const val INTERSTITIAL_AD_UNIT_ID = "ca-app-pub-3940256099942544/1033173712"
-    const val REWARDED_AD_UNIT_ID = "ca-app-pub-3940256099942544/5224354917"
-
-    private var interstitialAd: InterstitialAd? = null
-    private var rewardedAd: RewardedAd? = null
-
-    fun loadInterstitial(context: Context) {
-        try {
-            val adRequest = AdRequest.Builder().build()
-            InterstitialAd.load(context, INTERSTITIAL_AD_UNIT_ID, adRequest, object : InterstitialAdLoadCallback() {
-                override fun onAdLoaded(ad: InterstitialAd) {
-                    interstitialAd = ad
-                }
-                override fun onAdFailedToLoad(error: LoadAdError) {
-                    interstitialAd = null
-                }
-            })
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
-    fun showInterstitial(activity: Activity, onDismissed: () -> Unit = {}) {
-        try {
-            if (interstitialAd != null) {
-                interstitialAd?.show(activity)
-                interstitialAd = null
-                loadInterstitial(activity)
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        onDismissed()
-    }
-
-    fun loadRewarded(context: Context) {
-        try {
-            val adRequest = AdRequest.Builder().build()
-            RewardedAd.load(context, REWARDED_AD_UNIT_ID, adRequest, object : RewardedAdLoadCallback() {
-                override fun onAdLoaded(ad: RewardedAd) {
-                    rewardedAd = ad
-                }
-                override fun onAdFailedToLoad(error: LoadAdError) {
-                    rewardedAd = null
-                }
-            })
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
-    fun showRewarded(activity: Activity, onRewardEarned: (Int) -> Unit, onNotReady: () -> Unit) {
-        try {
-            val ad = rewardedAd
-            if (ad != null) {
-                ad.show(activity) { rewardItem ->
-                    onRewardEarned(rewardItem.amount)
-                }
-                rewardedAd = null
-                loadRewarded(activity)
-            } else {
-                loadRewarded(activity)
-                onNotReady()
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            onNotReady()
-        }
-    }
-}
-
-@Composable
-fun BannerAdView(modifier: Modifier = Modifier) {
-    AndroidView(
-        modifier = modifier.fillMaxWidth(),
-        factory = { context ->
-            AdView(context).apply {
-                setAdSize(AdSize.BANNER)
-                adUnitId = AdMobManager.BANNER_AD_UNIT_ID
-                try {
-                    loadAd(AdRequest.Builder().build())
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            }
-        }
+object PuzzleRepository {
+    val puzzles = listOf(
+        Puzzle(
+            id = 1,
+            category = "التاريخ الإسلامي",
+            question = "من هو القائد المسلم الذي فتح الأندلس عام 92 هـ وعبر المضيق الذي سُمّي باسمه؟",
+            options = listOf("موسى بن نصير", "طارق بن زياد", "عقبة بن نافع", "قتيبة بن مسلم"),
+            correctIndex = 1,
+            hint = "مضيق يفصل بين المغرب وإسبانيا يحمل اسمه حتى اليوم.",
+            historicalFact = "عبر طارق بن زياد المضيق في رجب 92 هـ (711 م) بجيش قوامه نحو 7 آلاف مقاتل."
+        ),
+        Puzzle(
+            id = 2,
+            category = "تاريخ مصر",
+            question = "من هو مؤسس الدولة الطولونية في مصر والذي بنى مسجده الشهير ذو المئذنة الملوية في القاهرة؟",
+            options = listOf("أحمد بن طولون", "محمد بن طغج الإخشيد", "جوهر الصقلي", "صلاح الدين الأيوبي"),
+            correctIndex = 0,
+            hint = "تولى حكم مصر عام 254 هـ وأنشأ مدينة القطائع.",
+            historicalFact = "يُعد جامع أحمد بن طولون أقدم مسجد في مصر محتفظ بتفاصيله المعمارية الأصلية."
+        ),
+        Puzzle(
+            id = 3,
+            category = "ألغاز التاريخ الغامضة",
+            question = "سفينة تجارية أمريكية عُثر عليها عام 1872م تبحر في المحيط الأطلسي بحمولتها كاملة دون أي أثر لطاقمها، ما اسمها؟",
+            options = listOf("تيتانيك", "ماري سيليست", "فلانان", "إندورانس"),
+            correctIndex = 1,
+            hint = "يبدأ اسمها بـ (ماري) وتُعرف بأشهر سفينة أشباح في التاريخ البحري.",
+            historicalFact = "عُثر على السفينة (Mary Celeste) قرب جزر الأزور وكانت مؤونتها تكفي لستة أشهر."
+        ),
+        Puzzle(
+            id = 4,
+            category = "العصر العباسي",
+            question = "ما اسم المكتبة العلمية الكبرى التي ازدهرت في بغداد خلال العصر العباسي وتُرجمت فيها علوم العالم؟",
+            options = listOf("دار العلم", "بيت الحكمة", "خزانة الكتب", "المدرسة النظامية"),
+            correctIndex = 1,
+            hint = "أسسها هارون الرشيد وبلغت ذروتها في عهد الخليفة المأمون.",
+            historicalFact = "كان بيت الحكمة مركزاً للترجمة والبحث العلمي والفلكي لعدة قرون."
+        ),
+        Puzzle(
+            id = 5,
+            category = "الحضارة المصرية القديمة",
+            question = "أي من ملوك الأسرة الرابعة في مصر القديمة هو صاحب الهرم الأكبر بالجيزة؟",
+            options = listOf("خفرع", "منكاورع", "خوفو", "زوسر"),
+            correctIndex = 2,
+            hint = "والد الملك خفرع وصاحب أطول بناء حجري في العالم القديم.",
+            historicalFact = "استغرق بناء هرم خوفو نحو 20 عاماً ويضم ممرات وغرفاً هندسية دقيقة."
+        )
     )
 }
