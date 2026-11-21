@@ -11,12 +11,13 @@ data class Puzzle(
 )
 
 object PuzzleData {
-    val puzzles: List<Puzzle> =
-        IslamicHistoryPuzzles.list +
-        EgyptHistoryPuzzles.list +
-        MysteriesPuzzles.list +
-        AncientCivilizationsPuzzles.list +
+    val puzzles: List<Puzzle> = listOf(
+        IslamicHistoryPuzzles.list,
+        EgyptHistoryPuzzles.list,
+        MysteriesPuzzles.list,
+        AncientCivilizationsPuzzles.list,
         HistoryOfSciencePuzzles.list
+    ).flatten()
 
     val allPuzzles: List<Puzzle> = puzzles
 
