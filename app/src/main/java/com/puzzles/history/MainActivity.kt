@@ -210,7 +210,7 @@ fun PuzzleGameScreen(isAdsReady: Boolean) {
                 Spacer(modifier = Modifier.height(14.dp))
 
                 // خيارات الإجابة
-                currentPuzzle.options.forEachIndexed { index, optionText ->
+                currentPuzzle.options.forEachIndexed { index: Int, optionText: String ->
                     val buttonColor = when {
                         !isAnswered -> Color(0xFFFFFFFF)
                         index == currentPuzzle.correctIndex -> Color(0xFFD4EDDA)
