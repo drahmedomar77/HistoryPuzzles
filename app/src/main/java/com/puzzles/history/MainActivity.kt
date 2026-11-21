@@ -204,21 +204,20 @@ fun PuzzleGameScreen(isAdsReady: Boolean) {
                             color = Color(0xFF102A43),
                             lineHeight = 28.sp
                         )
-                  
-                }
+                    }
+                } // إغلاق Card (كان مفقوداً)
 
                 Spacer(modifier = Modifier.height(14.dp))
 
                 // خيارات الإجابة
-               for (index in currentPuzzle.options.indices) {
-    val optionText = currentPuzzle.options[index]
-    val buttonColor = when {
-        !isAnswered -> Color(0xFFFFFFFF)
-        index == currentPuzzle.correctIndex -> Color(0xFFD4EDDA)
-        index == selectedOption -> Color(0xFFFFB07A)
-        else -> Color(0xFFFFFFFF)
-    }
-                    
+                for (index in currentPuzzle.options.indices) {
+                    val optionText = currentPuzzle.options[index]
+                    val buttonColor = when {
+                        !isAnswered -> Color(0xFFFFFFFF)
+                        index == currentPuzzle.correctIndex -> Color(0xFFD4EDDA)
+                        index == selectedOption -> Color(0xFFFFB07A)
+                        else -> Color(0xFFFFFFFF)
+                    }
 
                     OutlinedButton(
                         onClick = {
@@ -234,7 +233,7 @@ fun PuzzleGameScreen(isAdsReady: Boolean) {
                                     Toast.makeText(context, "إجابة خاطئة!", Toast.LENGTH_SHORT).show()
                                 }
                             }
-                        }
+                        }, // الفاصلة المفقودة
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 4.dp),
@@ -242,16 +241,16 @@ fun PuzzleGameScreen(isAdsReady: Boolean) {
                         colors = ButtonDefaults.outlinedButtonColors(containerColor = buttonColor)
                     ) {
                         Text(
-    text = optionText.toString(),
-    fontSize = 16.sp,
-    color = Color.Black,
-    textAlign = TextAlign.Start,
-    modifier = Modifier
-        .fillMaxWidth()
-        .padding(vertical = 4.dp)
-)
+                            text = optionText.toString(),
+                            fontSize = 16.sp,
+                            color = Color.Black,
+                            textAlign = TextAlign.Start,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp)
+                        )
                     }
-                }
+                } // إغلاق حلقة for (كان مفقوداً)
 
                 // عرض التلميح
                 if (showHint) {
@@ -292,30 +291,29 @@ fun PuzzleGameScreen(isAdsReady: Boolean) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                   Button(
-    onClick = {
-        if (!showHint) {
-            if (coins >= 30) {
-                coins -= 30
-                showHint = true
-                saveProgress(newCoins = coins)
-            } else {
-                Toast.makeText(
-                    context,
-                    "رصيدك غير كافٍ (تحتاج 30 عملة)",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
-    },   // <-- أضف هذه الفاصلة
-
-    modifier = Modifier.weight(1f),
-    colors = ButtonDefaults.buttonColors(
-        containerColor = Color(0xFFD97706)
-    )
-) {
-    Text("💡 تلميح (30 🪙)", fontSize = 14.sp)
-}
+                    Button(
+                        onClick = {
+                            if (!showHint) {
+                                if (coins >= 30) {
+                                    coins -= 30
+                                    showHint = true
+                                    saveProgress(newCoins = coins)
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "رصيدك غير كافٍ (تحتاج 30 عملة)",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
+                        },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFD97706)
+                        )
+                    ) {
+                        Text("💡 تلميح (30 🪙)", fontSize = 14.sp)
+                    }
 
                     Button(
                         onClick = {
