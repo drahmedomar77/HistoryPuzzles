@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ألغاز التاريخ | History Puzzles</title>
+  <style>
+    body { font-family: Tahoma, Arial, sans-serif; background: #f8f6f0; color: #2c2416; text-align: center; padding: 40px 20px; }
+    .card { max-width: 600px; margin: auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    h1 { color: #8b5a2b; }
+    a { display: inline-block; margin-top: 20px; color: #8b5a2b; text-decoration: none; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>لعبة ألغاز التاريخ - History Puzzles</h1>
+    <p>اختبر معلوماتك التاريخية عبر العصور والحضارات في تجربة ثقافية ممتعة وتفاعلية.</p>
+    <p>Test your historical knowledge across civilizations and eras in a fun trivia puzzle game.</p>
+    <a href="privacy.html">سياسة الخصوصية | Privacy Policy</a>
+  </div>
+</body>
+</html>
