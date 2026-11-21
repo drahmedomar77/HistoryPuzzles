@@ -10,10 +10,10 @@
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
 
-        <!-- معرّف تطبيق AdMob التجريبي الرسمي (استبدله بمعرّفك الحقيقي عند النشر) -->
+        <!-- معرّف تطبيق Google AdMob الحقيقي -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713" />
+            android:value="ca-app-pub-1213862400889542~3049819561" />
 
         <activity
             android:name=".MainActivity"
@@ -23,5 +23,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
     </application>
+
 </manifest>
