@@ -210,13 +210,15 @@ fun PuzzleGameScreen(isAdsReady: Boolean) {
                 Spacer(modifier = Modifier.height(14.dp))
 
                 // خيارات الإجابة
-                currentPuzzle.options.forEachIndexed { index: Int, optionText: String ->
-                    val buttonColor = when {
-                        !isAnswered -> Color(0xFFFFFFFF)
-                        index == currentPuzzle.correctIndex -> Color(0xFFD4EDDA)
-                        index == selectedOption -> Color(0xFFF8D7DA)
-                        else -> Color(0xFFFFFFFF)
-                    }
+               for (index in currentPuzzle.options.indices) {
+    val optionText = currentPuzzle.options[index]
+    val buttonColor = when {
+        !isAnswered -> Color(0xFFFFFFFF)
+        index == currentPuzzle.correctIndex -> Color(0xFFD4EDDA)
+        index == selectedOption -> Color(0xFFFFB07A)
+        else -> Color(0xFFFFFFFF)
+    }
+                    
 
                     OutlinedButton(
                         onClick = {
