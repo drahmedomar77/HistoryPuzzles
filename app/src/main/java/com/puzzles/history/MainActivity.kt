@@ -234,7 +234,7 @@ fun PuzzleGameScreen(isAdsReady: Boolean) {
                                     Toast.makeText(context, "إجابة خاطئة!", Toast.LENGTH_SHORT).show()
                                 }
                             }
-                        },
+                        }
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 4.dp),
@@ -303,7 +303,7 @@ fun PuzzleGameScreen(isAdsReady: Boolean) {
                                     Toast.makeText(context, "رصيدك غير كافٍ (تحتاج 30 عملة)", Toast.LENGTH_SHORT).show()
                                 }
                             }
-                        },
+                        }
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD97706))
                     ) {
