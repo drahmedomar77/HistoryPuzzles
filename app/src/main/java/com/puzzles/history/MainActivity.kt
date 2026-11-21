@@ -292,23 +292,30 @@ fun PuzzleGameScreen(isAdsReady: Boolean) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Button(
-                        onClick = {
-                            if (!showHint) {
-                                if (coins >= 30) {
-                                    coins -= 30
-                                    showHint = true
-                                    saveProgress(newCoins = coins)
-                                } else {
-                                    Toast.makeText(context, "رصيدك غير كافٍ (تحتاج 30 عملة)", Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                        }
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD97706))
-                    ) {
-                        Text("💡 تلميح (30 🪙)", fontSize = 14.sp)
-                    }
+                   Button(
+    onClick = {
+        if (!showHint) {
+            if (coins >= 30) {
+                coins -= 30
+                showHint = true
+                saveProgress(newCoins = coins)
+            } else {
+                Toast.makeText(
+                    context,
+                    "رصيدك غير كافٍ (تحتاج 30 عملة)",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    },   // <-- أضف هذه الفاصلة
+
+    modifier = Modifier.weight(1f),
+    colors = ButtonDefaults.buttonColors(
+        containerColor = Color(0xFFD97706)
+    )
+) {
+    Text("💡 تلميح (30 🪙)", fontSize = 14.sp)
+}
 
                     Button(
                         onClick = {
