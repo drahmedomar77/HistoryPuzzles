@@ -1,11 +1,13 @@
 package com.puzzles.history
 
 import android.app.Activity
+import android.content.Context
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -54,23 +56,57 @@ class MainActivity : ComponentActivity() {
 fun PuzzleGameScreen(isAdsReady: Boolean) {
     val context = LocalContext.current
     val activity = context as? Activity
-    val puzzles = PuzzleRepository.puzzles
+    val prefs = remember { context.getSharedPreferences("history_puzzles_prefs", Context.MODE_PRIVATE) }
 
-    var currentIndex by remember { mutableIntStateOf(0) }
-    var coins by remember { mutableIntStateOf(50) }
+    // قائمة التصنيفات المتاحة
+    val categories = remember {
+        listOf("الكل") + PuzzleRepository.puzzles.map { it.category }.distinct()
+    }
+
+    var selectedCategory by remember {
+        mutableStateOf(prefs.getString("selected_category", "الكل") ?: "الكل")
+    }
+
+    val filteredPuzzles = remember(selectedCategory) {
+        if (selectedCategory == "الكل") {
+            PuzzleRepository.puzzles
+        } else {
+            PuzzleRepository.puzzles.filter { it.category == selectedCategory }
+        }
+    }
+
+    var currentIndex by remember(selectedCategory) {
+        val savedIdx = prefs.getInt("index_$selectedCategory", 0)
+        mutableIntStateOf(if (savedIdx < filteredPuzzles.size) savedIdx else 0)
+    }
+
+    var coins by remember {
+        mutableIntStateOf(prefs.getInt("user_coins", 50))
+    }
+
     var showHint by remember { mutableStateOf(false) }
     var selectedOption by remember { mutableIntStateOf(-1) }
     var isAnswered by remember { mutableStateOf(false) }
-    var solvedCount by remember { mutableIntStateOf(0) }
+    var solvedCount by remember { mutableIntStateOf(prefs.getInt("solved_count", 0)) }
 
-    val currentPuzzle = puzzles[currentIndex]
+    // دالة مساعدة لحفظ التقدم والعملات تلقائياً
+    fun saveProgress(newCoins: Int = coins, newIndex: Int = currentIndex, newSolved: Int = solvedCount) {
+        prefs.edit()
+            .putInt("user_coins", newCoins)
+            .putInt("index_$selectedCategory", newIndex)
+            .putInt("solved_count", newSolved)
+            .putString("selected_category", selectedCategory)
+            .apply()
+    }
+
+    val currentPuzzle = filteredPuzzles[currentIndex]
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = "ألغاز التاريخ (${currentIndex + 1}/${puzzles.size})",
+                        text = "ألغاز التاريخ (${currentIndex + 1}/${filteredPuzzles.size})",
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp
                     )
@@ -116,30 +152,64 @@ fun PuzzleGameScreen(isAdsReady: Boolean) {
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Column {
-                AssistChip(
-                    onClick = {},
-                    label = { Text(currentPuzzle.category, fontWeight = FontWeight.SemiBold) }
-                )
+                // شريط اختيار الأقسام (التصنيفات)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    categories.forEach { category ->
+                        FilterChip(
+                            selected = selectedCategory == category,
+                            onClick = {
+                                if (selectedCategory != category) {
+                                    selectedCategory = category
+                                    selectedOption = -1
+                                    isAnswered = false
+                                    showHint = false
+                                    prefs.edit().putString("selected_category", category).apply()
+                                }
+                            },
+                            label = {
+                                Text(
+                                    text = category,
+                                    fontWeight = if (selectedCategory == category) FontWeight.Bold else FontWeight.Normal
+                                )
+                            }
+                        )
+                    }
+                }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
+                // بطاقة السؤال
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F4F8)),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text(
-                        text = currentPuzzle.question,
-                        fontSize = 19.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF102A43),
-                        lineHeight = 28.sp,
-                        modifier = Modifier.padding(16.dp)
-                    )
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "القسم: ${currentPuzzle.category}",
+                            fontSize = 13.sp,
+                            color = Color(0xFF486581),
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = currentPuzzle.question,
+                            fontSize = 19.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF102A43),
+                            lineHeight = 28.sp
+                        )
+                    }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
+                // خيارات الإجابة
                 currentPuzzle.options.forEachIndexed { index, optionText ->
                     val buttonColor = when {
                         !isAnswered -> Color(0xFFFFFFFF)
@@ -156,6 +226,7 @@ fun PuzzleGameScreen(isAdsReady: Boolean) {
                                 if (index == currentPuzzle.correctIndex) {
                                     coins += 20
                                     solvedCount++
+                                    saveProgress(newCoins = coins, newSolved = solvedCount)
                                     Toast.makeText(context, "إجابة صحيحة! +20 عملة", Toast.LENGTH_SHORT).show()
                                 } else {
                                     Toast.makeText(context, "إجابة خاطئة!", Toast.LENGTH_SHORT).show()
@@ -180,6 +251,7 @@ fun PuzzleGameScreen(isAdsReady: Boolean) {
                     }
                 }
 
+                // عرض التلميح
                 if (showHint) {
                     Spacer(modifier = Modifier.height(10.dp))
                     Card(
@@ -194,6 +266,7 @@ fun PuzzleGameScreen(isAdsReady: Boolean) {
                     }
                 }
 
+                // عرض المعلومة التاريخية بعد الإجابة
                 if (isAnswered) {
                     Spacer(modifier = Modifier.height(10.dp))
                     Card(
@@ -211,6 +284,7 @@ fun PuzzleGameScreen(isAdsReady: Boolean) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // أزرار التلميح والمكافأة والانتقال للتالي
             Column(modifier = Modifier.fillMaxWidth()) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -222,6 +296,7 @@ fun PuzzleGameScreen(isAdsReady: Boolean) {
                                 if (coins >= 30) {
                                     coins -= 30
                                     showHint = true
+                                    saveProgress(newCoins = coins)
                                 } else {
                                     Toast.makeText(context, "رصيدك غير كافٍ (تحتاج 30 عملة)", Toast.LENGTH_SHORT).show()
                                 }
@@ -240,6 +315,7 @@ fun PuzzleGameScreen(isAdsReady: Boolean) {
                                     activity = act,
                                     onRewardEarned = {
                                         coins += 50
+                                        saveProgress(newCoins = coins)
                                         Toast.makeText(context, "تمت إضافة 50 عملة لرصيدك!", Toast.LENGTH_SHORT).show()
                                     },
                                     onNotReady = {
@@ -262,10 +338,12 @@ fun PuzzleGameScreen(isAdsReady: Boolean) {
                             if (solvedCount > 0 && solvedCount % 3 == 0 && activity != null) {
                                 AdMobManager.showInterstitial(activity)
                             }
-                            currentIndex = (currentIndex + 1) % puzzles.size
+                            val nextIndex = (currentIndex + 1) % filteredPuzzles.size
+                            currentIndex = nextIndex
                             selectedOption = -1
                             isAnswered = false
                             showHint = false
+                            saveProgress(newIndex = nextIndex)
                         },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E3A5F))
