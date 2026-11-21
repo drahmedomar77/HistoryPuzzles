@@ -9,6 +9,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
@@ -16,73 +17,81 @@ import com.google.android.gms.ads.rewarded.RewardedAd
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 
 object AdMobManager {
-    const val BANNER_AD_UNIT_ID = "ca-app-pub-3940256099942544/6300978111"
-    const val INTERSTITIAL_AD_UNIT_ID = "ca-app-pub-3940256099942544/1033173712"
-    const val REWARDED_AD_UNIT_ID = "ca-app-pub-3940256099942544/5224354917"
+    // معرّفات الوحدات الإعلانية الحقيقية الخاصة بتطبيق ألغاز التاريخ
+    const val BANNER_AD_UNIT_ID = "ca-app-pub-1213862400889542/3780447389"
+    const val INTERSTITIAL_AD_UNIT_ID = "ca-app-pub-1213862400889542/4718585598"
+    const val REWARDED_AD_UNIT_ID = "ca-app-pub-1213862400889542/4325735504"
 
     private var interstitialAd: InterstitialAd? = null
     private var rewardedAd: RewardedAd? = null
 
     fun loadInterstitial(context: Context) {
-        try {
-            val adRequest = AdRequest.Builder().build()
-            InterstitialAd.load(context, INTERSTITIAL_AD_UNIT_ID, adRequest, object : InterstitialAdLoadCallback() {
+        val adRequest = AdRequest.Builder().build()
+        InterstitialAd.load(
+            context,
+            INTERSTITIAL_AD_UNIT_ID,
+            adRequest,
+            object : InterstitialAdLoadCallback() {
                 override fun onAdLoaded(ad: InterstitialAd) {
                     interstitialAd = ad
                 }
+
                 override fun onAdFailedToLoad(error: LoadAdError) {
                     interstitialAd = null
                 }
-            })
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+            }
+        )
     }
 
-    fun showInterstitial(activity: Activity, onDismissed: () -> Unit = {}) {
-        try {
-            if (interstitialAd != null) {
-                interstitialAd?.show(activity)
-                interstitialAd = null
-                loadInterstitial(activity)
+    fun showInterstitial(activity: Activity) {
+        if (interstitialAd != null) {
+            interstitialAd?.fullScreenContentCallback = object : FullScreenContentCallback() {
+                override fun onAdDismissedFullScreenContent() {
+                    interstitialAd = null
+                    loadInterstitial(activity)
+                }
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
+            interstitialAd?.show(activity)
+        } else {
+            loadInterstitial(activity)
         }
-        onDismissed()
     }
 
     fun loadRewarded(context: Context) {
-        try {
-            val adRequest = AdRequest.Builder().build()
-            RewardedAd.load(context, REWARDED_AD_UNIT_ID, adRequest, object : RewardedAdLoadCallback() {
+        val adRequest = AdRequest.Builder().build()
+        RewardedAd.load(
+            context,
+            REWARDED_AD_UNIT_ID,
+            adRequest,
+            object : RewardedAdLoadCallback() {
                 override fun onAdLoaded(ad: RewardedAd) {
                     rewardedAd = ad
                 }
+
                 override fun onAdFailedToLoad(error: LoadAdError) {
                     rewardedAd = null
                 }
-            })
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+            }
+        )
     }
 
-    fun showRewarded(activity: Activity, onRewardEarned: (Int) -> Unit, onNotReady: () -> Unit) {
-        try {
-            val ad = rewardedAd
-            if (ad != null) {
-                ad.show(activity) { rewardItem ->
-                    onRewardEarned(rewardItem.amount)
+    fun showRewarded(
+        activity: Activity,
+        onRewardEarned: () -> Unit,
+        onNotReady: () -> Unit
+    ) {
+        if (rewardedAd != null) {
+            rewardedAd?.fullScreenContentCallback = object : FullScreenContentCallback() {
+                override fun onAdDismissedFullScreenContent() {
+                    rewardedAd = null
+                    loadRewarded(activity)
                 }
-                rewardedAd = null
-                loadRewarded(activity)
-            } else {
-                loadRewarded(activity)
-                onNotReady()
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
+            rewardedAd?.show(activity) {
+                onRewardEarned()
+            }
+        } else {
+            loadRewarded(activity)
             onNotReady()
         }
     }
@@ -96,11 +105,7 @@ fun BannerAdView(modifier: Modifier = Modifier) {
             AdView(context).apply {
                 setAdSize(AdSize.BANNER)
                 adUnitId = AdMobManager.BANNER_AD_UNIT_ID
-                try {
-                    loadAd(AdRequest.Builder().build())
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
+                loadAd(AdRequest.Builder().build())
             }
         }
     )
