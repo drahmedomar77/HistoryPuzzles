@@ -17,4 +17,8 @@ object PuzzleData {
         MysteriesPuzzles.list +
         AncientCivilizationsPuzzles.list +
         HistoryOfSciencePuzzles.list
+
+    val allPuzzles: List<Puzzle> = puzzles
+
+    fun getAllPuzzles(): List<Puzzle> = puzzles
 }
