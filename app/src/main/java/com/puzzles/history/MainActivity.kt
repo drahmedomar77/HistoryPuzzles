@@ -204,7 +204,7 @@ fun PuzzleGameScreen(isAdsReady: Boolean) {
                             color = Color(0xFF102A43),
                             lineHeight = 28.sp
                         )
-                    }
+                  
                 }
 
                 Spacer(modifier = Modifier.height(14.dp))
@@ -240,14 +240,14 @@ fun PuzzleGameScreen(isAdsReady: Boolean) {
                         colors = ButtonDefaults.outlinedButtonColors(containerColor = buttonColor)
                     ) {
                         Text(
-                            text = optionText,
-                            fontSize = 16.sp,
-                            color = Color.Black,
-                            textAlign = TextAlign.Start,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 6.dp)
-                        )
+    text = optionText.toString(),
+    fontSize = 16.sp,
+    color = Color.Black,
+    textAlign = TextAlign.Start,
+    modifier = Modifier
+        .fillMaxWidth()
+        .padding(vertical = 4.dp)
+)
                     }
                 }
 
