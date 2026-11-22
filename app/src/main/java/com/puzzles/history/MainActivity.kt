@@ -140,10 +140,13 @@ fun PuzzleGameScreen(isAdsReady: Boolean) {
                         .fillMaxWidth()
                         .background(Color(0xFFF5F5F5))
                 ) {
-                   BannerAdView(
-    isAdsReady = isAdsReady,
-    adInitError = null
-)
+                    BannerAdView(
+                        isAdsReady = isAdsReady,
+                        adInitError = null
+                    )
+                }
+            }
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
