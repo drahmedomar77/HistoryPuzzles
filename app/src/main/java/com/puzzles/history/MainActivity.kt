@@ -226,7 +226,7 @@ fun PuzzleGameScreen(isAdsReady: Boolean) {
                                 selectedOption = index
                                 isAnswered = true
                                 if (index == currentPuzzle.correctIndex) {
-                                    coins += 20
+                                   coins += 20
                                     solvedCount++
                                     saveProgress(newCoins = coins, newSolved = solvedCount)
                                     Toast.makeText(context, "إجابة صحيحة! +20 عملة", Toast.LENGTH_SHORT).show()
@@ -234,7 +234,7 @@ fun PuzzleGameScreen(isAdsReady: Boolean) {
                                     Toast.makeText(context, "إجابة خاطئة!", Toast.LENGTH_SHORT).show()
                                 }
                             }
-                        }
+                        }, // <-- Add this comma (and check that all braces in onClick match)
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 4.dp),
@@ -242,7 +242,7 @@ fun PuzzleGameScreen(isAdsReady: Boolean) {
                         colors = ButtonDefaults.outlinedButtonColors(containerColor = buttonColor)
                     ) {
                         Text(
-    text = optionText.toString(),
+                            text = optionText.toString(),
     fontSize = 16.sp,
     color = Color.Black,
     textAlign = TextAlign.Start,
