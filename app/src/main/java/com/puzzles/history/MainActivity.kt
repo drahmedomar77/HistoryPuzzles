@@ -75,6 +75,8 @@ fun PuzzleGameScreen(isAdsReady: Boolean) {
         }
     }
 
+    if (filteredPuzzles.isEmpty()) return
+
     var currentIndex by remember(selectedCategory) {
         val savedIdx = prefs.getInt("index_$selectedCategory", 0)
         mutableIntStateOf(if (savedIdx < filteredPuzzles.size) savedIdx else 0)
@@ -204,21 +206,20 @@ fun PuzzleGameScreen(isAdsReady: Boolean) {
                             color = Color(0xFF102A43),
                             lineHeight = 28.sp
                         )
-                  
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(14.dp))
 
                 // خيارات الإجابة
-               for (index in currentPuzzle.options.indices) {
-    val optionText = currentPuzzle.options[index]
-    val buttonColor = when {
-        !isAnswered -> Color(0xFFFFFFFF)
-        index == currentPuzzle.correctIndex -> Color(0xFFD4EDDA)
-        index == selectedOption -> Color(0xFFFFB07A)
-        else -> Color(0xFFFFFFFF)
-    }
-                    
+                for (index in currentPuzzle.options.indices) {
+                    val optionText = currentPuzzle.options[index]
+                    val buttonColor = when {
+                        !isAnswered -> Color(0xFFFFFFFF)
+                        index == currentPuzzle.correctIndex -> Color(0xFFD4EDDA)
+                        index == selectedOption -> Color(0xFFFFB07A)
+                        else -> Color(0xFFFFFFFF)
+                    }
 
                     OutlinedButton(
                         onClick = {
@@ -226,7 +227,7 @@ fun PuzzleGameScreen(isAdsReady: Boolean) {
                                 selectedOption = index
                                 isAnswered = true
                                 if (index == currentPuzzle.correctIndex) {
-                                   coins += 20
+                                    coins += 20
                                     solvedCount++
                                     saveProgress(newCoins = coins, newSolved = solvedCount)
                                     Toast.makeText(context, "إجابة صحيحة! +20 عملة", Toast.LENGTH_SHORT).show()
@@ -234,7 +235,7 @@ fun PuzzleGameScreen(isAdsReady: Boolean) {
                                     Toast.makeText(context, "إجابة خاطئة!", Toast.LENGTH_SHORT).show()
                                 }
                             }
-                        }, // <-- Add this comma (and check that all braces in onClick match)
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 4.dp),
@@ -243,13 +244,13 @@ fun PuzzleGameScreen(isAdsReady: Boolean) {
                     ) {
                         Text(
                             text = optionText.toString(),
-    fontSize = 16.sp,
-    color = Color.Black,
-    textAlign = TextAlign.Start,
-    modifier = Modifier
-        .fillMaxWidth()
-        .padding(vertical = 4.dp)
-)
+                            fontSize = 16.sp,
+                            color = Color.Black,
+                            textAlign = TextAlign.Start,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp)
+                        )
                     }
                 }
 
@@ -292,30 +293,29 @@ fun PuzzleGameScreen(isAdsReady: Boolean) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                   Button(
-    onClick = {
-        if (!showHint) {
-            if (coins >= 30) {
-                coins -= 30
-                showHint = true
-                saveProgress(newCoins = coins)
-            } else {
-                Toast.makeText(
-                    context,
-                    "رصيدك غير كافٍ (تحتاج 30 عملة)",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
-    },   // <-- أضف هذه الفاصلة
-
-    modifier = Modifier.weight(1f),
-    colors = ButtonDefaults.buttonColors(
-        containerColor = Color(0xFFD97706)
-    )
-) {
-    Text("💡 تلميح (30 🪙)", fontSize = 14.sp)
-}
+                    Button(
+                        onClick = {
+                            if (!showHint) {
+                                if (coins >= 30) {
+                                    coins -= 30
+                                    showHint = true
+                                    saveProgress(newCoins = coins)
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "رصيدك غير كافٍ (تحتاج 30 عملة)",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
+                        },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFD97706)
+                        )
+                    ) {
+                        Text("💡 تلميح (30 🪙)", fontSize = 14.sp)
+                    }
 
                     Button(
                         onClick = {
