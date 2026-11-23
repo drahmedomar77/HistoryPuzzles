@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group android:translateY="2">
+    <!-- القلعة: البرجان الجانبيان والحصن الأوسط والشرفات والعلم -->
+    <path
+        android:fillColor="#F2C14E"
+        android:pathData="M29,47h10v31h-10z M29,42h3v5h-3z M36,42h3v5h-3z M69,47h10v31h-10z M69,42h3v5h-3z M76,42h3v5h-3z M39,37h30v41h-30z M39,31h6v6h-6z M51,31h6v6h-6z M63,31h6v6h-6z M53.4,23h1.2v8h-1.2z M54.6,23L61.5,25.7L54.6,28.4Z" />
+    <!-- بوابة القلعة -->
+    <path
+        android:fillColor="#17315A"
+        android:pathData="M49,78 V69 A5,5 0 0 1 59,69 V78 Z" />
+    <!-- علامة الاستفهام: المنحنى -->
+    <path
+        android:pathData="M49.4,46.2 C49.4,42.8 51.4,41.2 54,41.2 C56.6,41.2 58.6,43.1 58.6,45.6 C58.6,48.2 56.6,48.9 55.3,50.2 C54.3,51.2 54,52 54,53.6"
+        android:strokeColor="#17315A"
+        android:strokeWidth="3.6"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <!-- علامة الاستفهام: النقطة -->
+    <path
+        android:fillColor="#17315A"
+        android:pathData="M54,58.4m-2.1,0a2.1,2.1 0,1 1,4.2 0a2.1,2.1 0,1 1,-4.2 0" />
+    </group>
+</vector>
