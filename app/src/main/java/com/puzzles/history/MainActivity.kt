@@ -3,6 +3,7 @@ package com.puzzles.history
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,6 +19,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import com.google.android.gms.ads.MobileAds
@@ -67,7 +69,12 @@ fun AppRoot(progress: Progress, isAdsReady: Boolean) {
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.weight(1f).fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .background(Brush.verticalGradient(listOf(NavyTop, NavyBottom)))
+        ) {
             when (tab) {
                 0 -> HomeScreen(progress = progress, onPlay = { playingCategory = it })
                 1 -> AchievementsScreen(progress = progress)
