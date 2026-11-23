@@ -84,6 +84,7 @@ fun PuzzleGameScreen(
     val sfx = remember { SoundFx(context) }
     DisposableEffect(Unit) { onDispose { sfx.release() } }
     val scrollState = rememberScrollState()
+    val chipsScroll = rememberScrollState()
 
     // قائمة التصنيفات المتاحة
     val categories = remember { listOf(Progress.ALL) + progress.categories }
@@ -116,6 +117,14 @@ fun PuzzleGameScreen(
     val currentPuzzle = filteredPuzzles[currentIndex]
 
     LaunchedEffect(currentIndex, selectedCategory) { scrollState.scrollTo(0) }
+
+    // يحرّك شريط الأقسام تلقائياً ليظهر القسم المختار (مثل تاريخ العلوم في آخر الشريط)
+    LaunchedEffect(selectedCategory, chipsScroll.maxValue) {
+        val idx = categories.indexOf(selectedCategory)
+        if (idx >= 0 && categories.size > 1 && chipsScroll.maxValue > 0) {
+            chipsScroll.animateScrollTo(chipsScroll.maxValue * idx / (categories.size - 1))
+        }
+    }
 
     fun resetQuestionState() {
         selectedOption = -1
@@ -239,7 +248,7 @@ fun PuzzleGameScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
+                        .horizontalScroll(chipsScroll),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     categories.forEach { name ->
