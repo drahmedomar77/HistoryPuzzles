@@ -1,31 +1,25 @@
 package com.puzzles.history
 
-import android.app.Activity
-import android.content.Context
-import android.media.AudioAttributes
-import android.media.SoundPool
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.google.android.gms.ads.MobileAds
 
 class MainActivity : ComponentActivity() {
@@ -44,386 +38,54 @@ class MainActivity : ComponentActivity() {
             e.printStackTrace()
         }
 
+        val progress = Progress(this)
+
         setContent {
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
                 MaterialTheme {
-                    PuzzleGameScreen(isAdsReady = isAdsInitialized)
+                    AppRoot(progress = progress, isAdsReady = isAdsInitialized)
                 }
             }
         }
     }
 }
 
-/** مؤثرات صوتية قصيرة للإجابة الصحيحة والخاطئة (الملفات في res/raw) */
-class SoundFx(context: Context) {
-    private val pool: SoundPool = SoundPool.Builder()
-        .setMaxStreams(2)
-        .setAudioAttributes(
-            AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_GAME)
-                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                .build()
-        )
-        .build()
-    private val correctId = pool.load(context, R.raw.correct, 1)
-    private val wrongId = pool.load(context, R.raw.wrong, 1)
-
-    fun playCorrect() { pool.play(correctId, 1f, 1f, 1, 0, 1f) }
-    fun playWrong() { pool.play(wrongId, 1f, 1f, 1, 0, 1f) }
-    fun release() { pool.release() }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PuzzleGameScreen(isAdsReady: Boolean) {
-    val context = LocalContext.current
-    val activity = context as? Activity
-    val prefs = remember { context.getSharedPreferences("history_puzzles_prefs", Context.MODE_PRIVATE) }
+fun AppRoot(progress: Progress, isAdsReady: Boolean) {
+    var playingCategory by remember { mutableStateOf<String?>(null) }
+    var tab by remember { mutableIntStateOf(0) }
 
-    // المؤثرات الصوتية (يمكن كتمها من الزر في الشريط العلوي)
-    val sfx = remember { SoundFx(context) }
-    DisposableEffect(Unit) { onDispose { sfx.release() } }
-    var soundOn by remember { mutableStateOf(prefs.getBoolean("sound_on", true)) }
-    val scrollState = rememberScrollState()
-
-    // قائمة التصنيفات المتاحة
-    val categories = remember {
-        listOf("الكل") + PuzzleRepository.puzzles.map { it.category }.distinct()
+    val category = playingCategory
+    if (category != null) {
+        PuzzleGameScreen(
+            progress = progress,
+            category = category,
+            isAdsReady = isAdsReady,
+            onExit = { playingCategory = null }
+        )
+        return
     }
 
-    var selectedCategory by remember {
-        mutableStateOf(prefs.getString("selected_category", "الكل") ?: "الكل")
-    }
-
-    val filteredPuzzles = remember(selectedCategory) {
-        if (selectedCategory == "الكل") {
-            PuzzleRepository.puzzles
-        } else {
-            PuzzleRepository.puzzles.filter { it.category == selectedCategory }
+    Column(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.weight(1f).fillMaxWidth()) {
+            when (tab) {
+                0 -> HomeScreen(progress = progress, onPlay = { playingCategory = it })
+                1 -> AchievementsScreen(progress = progress)
+                else -> SettingsScreen(progress = progress)
+            }
         }
-    }
-
-    if (filteredPuzzles.isEmpty()) return
-
-    var currentIndex by remember(selectedCategory) {
-        val savedIdx = prefs.getInt("index_$selectedCategory", 0)
-        mutableIntStateOf(if (savedIdx < filteredPuzzles.size) savedIdx else 0)
-    }
-
-    var coins by remember {
-        mutableIntStateOf(prefs.getInt("user_coins", 50))
-    }
-
-    var showHint by remember { mutableStateOf(false) }
-    var selectedOption by remember { mutableIntStateOf(-1) }
-    var isAnswered by remember { mutableStateOf(false) }
-    var solvedCount by remember { mutableIntStateOf(prefs.getInt("solved_count", 0)) }
-
-    // دالة مساعدة لحفظ التقدم والعملات تلقائياً
-    fun saveProgress(newCoins: Int = coins, newIndex: Int = currentIndex, newSolved: Int = solvedCount) {
-        prefs.edit()
-            .putInt("user_coins", newCoins)
-            .putInt("index_$selectedCategory", newIndex)
-            .putInt("solved_count", newSolved)
-            .putString("selected_category", selectedCategory)
-            .apply()
-    }
-
-    val currentPuzzle = filteredPuzzles[currentIndex]
-
-    LaunchedEffect(currentIndex, selectedCategory) { scrollState.scrollTo(0) }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "ألغاز التاريخ (${currentIndex + 1}/${filteredPuzzles.size})",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
-                    )
-                },
-                actions = {
-                    Text(
-                        text = if (soundOn) "🔊" else "🔇",
-                        fontSize = 22.sp,
-                        modifier = Modifier
-                            .clickable {
-                                soundOn = !soundOn
-                                prefs.edit().putBoolean("sound_on", soundOn).apply()
-                            }
-                            .padding(horizontal = 8.dp)
-                    )
-                    Surface(
-                        color = Color(0xFFFFF3CD),
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.padding(end = 12.dp)
-                    ) {
-                        Text(
-                            text = "🪙 $coins عملة",
-                            color = Color(0xFF856404),
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF1E3A5F),
-                    titleContentColor = Color.White
+        if (isAdsReady) {
+            BannerAdView(isAdsReady = isAdsReady, adInitError = null)
+        }
+        NavigationBar {
+            val items = listOf("🏠" to "الرئيسية", "🏆" to "إنجازاتي", "⚙️" to "الإعدادات")
+            items.forEachIndexed { i, item ->
+                NavigationBarItem(
+                    selected = tab == i,
+                    onClick = { tab = i },
+                    icon = { Text(item.first) },
+                    label = { Text(item.second) }
                 )
-            )
-        },
-        bottomBar = {
-            // زر "اللغز التالي" ثابت فوق الإعلان مباشرة، فلا يختفي خلفه ولا يحتاج تمريراً
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color(0xFFF5F5F5))
-            ) {
-                if (isAnswered) {
-                    Button(
-                        onClick = {
-                            if (solvedCount > 0 && solvedCount % 3 == 0 && activity != null) {
-                                AdMobManager.showInterstitial(activity)
-                            }
-                            val nextIndex = (currentIndex + 1) % filteredPuzzles.size
-                            currentIndex = nextIndex
-                            selectedOption = -1
-                            isAnswered = false
-                            showHint = false
-                            saveProgress(newIndex = nextIndex)
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E3A5F))
-                    ) {
-                        Text("اللغز التالي ⬅", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
-                if (isAdsReady) {
-                    BannerAdView(
-                        isAdsReady = isAdsReady,
-                        adInitError = null
-                    )
-                }
-            }
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(16.dp)
-                .verticalScroll(scrollState),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column {
-                // شريط اختيار الأقسام (التصنيفات)
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    categories.forEach { category ->
-                        FilterChip(
-                            selected = selectedCategory == category,
-                            onClick = {
-                                if (selectedCategory != category) {
-                                    selectedCategory = category
-                                    selectedOption = -1
-                                    isAnswered = false
-                                    showHint = false
-                                    prefs.edit().putString("selected_category", category).apply()
-                                }
-                            },
-                            label = {
-                                Text(
-                                    text = category,
-                                    fontWeight = if (selectedCategory == category) FontWeight.Bold else FontWeight.Normal
-                                )
-                            }
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                // بطاقة السؤال
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F4F8)),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = "القسم: ${currentPuzzle.category}",
-                            fontSize = 13.sp,
-                            color = Color(0xFF486581),
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = currentPuzzle.question,
-                            fontSize = 19.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF102A43),
-                            lineHeight = 28.sp
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(14.dp))
-
-                // خيارات الإجابة
-                for (index in currentPuzzle.options.indices) {
-                    val optionText = currentPuzzle.options[index]
-                    val buttonColor = when {
-                        !isAnswered -> Color(0xFFFFFFFF)
-                        index == currentPuzzle.correctIndex -> Color(0xFFD4EDDA)
-                        index == selectedOption -> Color(0xFFFFB07A)
-                        else -> Color(0xFFFFFFFF)
-                    }
-
-                    OutlinedButton(
-                        onClick = {
-                            if (!isAnswered) {
-                                selectedOption = index
-                                isAnswered = true
-                                if (index == currentPuzzle.correctIndex) {
-                                    coins += 20
-                                    solvedCount++
-                                    saveProgress(newCoins = coins, newSolved = solvedCount)
-                                    if (soundOn) sfx.playCorrect()
-                                } else {
-                                    if (soundOn) sfx.playWrong()
-                                }
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(containerColor = buttonColor)
-                    ) {
-                        Text(
-                            text = optionText.toString(),
-                            fontSize = 16.sp,
-                            color = Color.Black,
-                            textAlign = TextAlign.Start,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp)
-                        )
-                    }
-                }
-
-                // عرض التلميح
-                if (showHint) {
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF8E1)),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            text = "💡 تلميح: ${currentPuzzle.hint}",
-                            color = Color(0xFF6D4C00),
-                            modifier = Modifier.padding(12.dp)
-                        )
-                    }
-                }
-
-                // نتيجة الإجابة (بدل رسالة Toast التي كانت تغطي الأزرار)
-                if (isAnswered) {
-                    val wasCorrect = selectedOption == currentPuzzle.correctIndex
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Card(
-                        colors = CardDefaults.cardColors(
-                            containerColor = if (wasCorrect) Color(0xFFD4EDDA) else Color(0xFFFFE0CC)
-                        ),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            text = if (wasCorrect) "✅ إجابة صحيحة! +20 عملة" else "❌ إجابة خاطئة",
-                            color = if (wasCorrect) Color(0xFF155724) else Color(0xFF8A3B12),
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(12.dp)
-                        )
-                    }
-                }
-
-                // عرض المعلومة التاريخية بعد الإجابة
-                if (isAnswered) {
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD)),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            text = "📜 معلومة تاريخية: ${currentPuzzle.historicalFact}",
-                            color = Color(0xFF0D47A1),
-                            modifier = Modifier.padding(12.dp)
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // أزرار التلميح والمكافأة والانتقال للتالي
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Button(
-                        onClick = {
-                            if (!showHint) {
-                                if (coins >= 30) {
-                                    coins -= 30
-                                    showHint = true
-                                    saveProgress(newCoins = coins)
-                                } else {
-                                    Toast.makeText(
-                                        context,
-                                        "رصيدك غير كافٍ (تحتاج 30 عملة)",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
-                            }
-                        },
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFD97706)
-                        )
-                    ) {
-                        Text("💡 تلميح (30 🪙)", fontSize = 14.sp)
-                    }
-
-                    Button(
-                        onClick = {
-                            activity?.let { act ->
-                                AdMobManager.showRewarded(
-                                    activity = act,
-                                    onRewardEarned = {
-                                        coins += 50
-                                        saveProgress(newCoins = coins)
-                                        Toast.makeText(context, "تمت إضافة 50 عملة لرصيدك!", Toast.LENGTH_SHORT).show()
-                                    },
-                                    onNotReady = {
-                                        Toast.makeText(context, "جاري تجهيز الإعلان، حاول بعد ثوانٍ", Toast.LENGTH_SHORT).show()
-                                    }
-                                )
-                            }
-                        },
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF059669))
-                    ) {
-                        Text("🎬 +50 🪙 مجاناً", fontSize = 14.sp)
-                    }
-                }
-
             }
         }
     }
