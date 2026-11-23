@@ -2,11 +2,14 @@ package com.puzzles.history
 
 import android.app.Activity
 import android.content.Context
+import android.media.AudioAttributes
+import android.media.SoundPool
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -51,12 +54,36 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+/** مؤثرات صوتية قصيرة للإجابة الصحيحة والخاطئة (الملفات في res/raw) */
+class SoundFx(context: Context) {
+    private val pool: SoundPool = SoundPool.Builder()
+        .setMaxStreams(2)
+        .setAudioAttributes(
+            AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_GAME)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build()
+        )
+        .build()
+    private val correctId = pool.load(context, R.raw.correct, 1)
+    private val wrongId = pool.load(context, R.raw.wrong, 1)
+
+    fun playCorrect() { pool.play(correctId, 1f, 1f, 1, 0, 1f) }
+    fun playWrong() { pool.play(wrongId, 1f, 1f, 1, 0, 1f) }
+    fun release() { pool.release() }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PuzzleGameScreen(isAdsReady: Boolean) {
     val context = LocalContext.current
     val activity = context as? Activity
     val prefs = remember { context.getSharedPreferences("history_puzzles_prefs", Context.MODE_PRIVATE) }
+
+    // المؤثرات الصوتية (يمكن كتمها من الزر في الشريط العلوي)
+    val sfx = remember { SoundFx(context) }
+    DisposableEffect(Unit) { onDispose { sfx.release() } }
+    var soundOn by remember { mutableStateOf(prefs.getBoolean("sound_on", true)) }
 
     // قائمة التصنيفات المتاحة
     val categories = remember {
@@ -114,6 +141,16 @@ fun PuzzleGameScreen(isAdsReady: Boolean) {
                     )
                 },
                 actions = {
+                    Text(
+                        text = if (soundOn) "🔊" else "🔇",
+                        fontSize = 22.sp,
+                        modifier = Modifier
+                            .clickable {
+                                soundOn = !soundOn
+                                prefs.edit().putBoolean("sound_on", soundOn).apply()
+                            }
+                            .padding(horizontal = 8.dp)
+                    )
                     Surface(
                         color = Color(0xFFFFF3CD),
                         shape = RoundedCornerShape(16.dp),
@@ -233,8 +270,10 @@ fun PuzzleGameScreen(isAdsReady: Boolean) {
                                     coins += 20
                                     solvedCount++
                                     saveProgress(newCoins = coins, newSolved = solvedCount)
+                                    if (soundOn) sfx.playCorrect()
                                     Toast.makeText(context, "إجابة صحيحة! +20 عملة", Toast.LENGTH_SHORT).show()
                                 } else {
+                                    if (soundOn) sfx.playWrong()
                                     Toast.makeText(context, "إجابة خاطئة!", Toast.LENGTH_SHORT).show()
                                 }
                             }
