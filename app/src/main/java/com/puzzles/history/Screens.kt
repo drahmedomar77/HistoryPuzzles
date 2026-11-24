@@ -66,12 +66,12 @@ private fun ScreenTitle(text: String) {
     Text(
         text = text,
         color = Color.White,
-        fontSize = 28.sp,
+        fontSize = 24.sp,
         fontWeight = FontWeight.Bold,
         textAlign = TextAlign.Center,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 16.dp, bottom = 16.dp)
+            .padding(top = 8.dp, bottom = 10.dp)
     )
 }
 
@@ -138,23 +138,23 @@ private fun ModeCard(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(24.dp))
+            .clip(RoundedCornerShape(20.dp))
             .background(Brush.horizontalGradient(listOf(from, to)))
             .clickable(onClick = onClick)
-            .padding(horizontal = 20.dp, vertical = 22.dp)
+            .padding(horizontal = 18.dp, vertical = 10.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(text = emoji, fontSize = 40.sp)
-            Spacer(modifier = Modifier.width(16.dp))
+            Text(text = emoji, fontSize = 30.sp)
+            Spacer(modifier = Modifier.width(14.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
                     color = Color.White,
-                    fontSize = 22.sp,
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = subtitle, color = Color.White.copy(alpha = 0.9f), fontSize = 14.sp)
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(text = subtitle, color = Color.White.copy(alpha = 0.9f), fontSize = 12.sp)
             }
             Text(text = "❮", color = Color.White, fontSize = 22.sp)
         }
@@ -174,16 +174,16 @@ fun HomeScreen(progress: Progress, onPlay: (String) -> Unit) {
     ) {
         ScreenTitle("🏛️ ألغاز التاريخ")
         StatsRow(progress)
-        Spacer(modifier = Modifier.height(14.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "مستواك: ${progress.rankTitle()}",
             color = Color.White,
-            fontSize = 20.sp,
+            fontSize = 17.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
         )
-        Spacer(modifier = Modifier.height(18.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
         ModeCard(
             emoji = "🎯",
@@ -195,7 +195,7 @@ fun HomeScreen(progress: Progress, onPlay: (String) -> Unit) {
         )
 
         progress.categories.forEachIndexed { i, category ->
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             val colors = CARD_COLORS[i % CARD_COLORS.size]
             ModeCard(
                 emoji = categoryEmoji(category),
@@ -207,15 +207,7 @@ fun HomeScreen(progress: Progress, onPlay: (String) -> Unit) {
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "تنبيه: الأسئلة للتسلية والتعلّم، وقد تختلف بعض التفاصيل التاريخية بين المصادر.",
-            color = Color.White.copy(alpha = 0.5f),
-            fontSize = 12.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
     }
 }
 

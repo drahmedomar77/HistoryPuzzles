@@ -126,6 +126,14 @@ fun PuzzleGameScreen(
         }
     }
 
+    // بعد الإجابة ننزل تلقائياً لآخر الصفحة لتظهر النتيجة والمعلومة التاريخية
+    LaunchedEffect(isAnswered) {
+        if (isAnswered) {
+            kotlinx.coroutines.delay(150)
+            scrollState.animateScrollTo(scrollState.maxValue)
+        }
+    }
+
     fun resetQuestionState() {
         selectedOption = -1
         isAnswered = false
@@ -239,7 +247,7 @@ fun PuzzleGameScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(16.dp)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
                 .verticalScroll(scrollState),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
@@ -279,7 +287,7 @@ fun PuzzleGameScreen(
                     colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F4F8)),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.padding(12.dp)) {
                         Text(
                             text = "القسم: ${currentPuzzle.category}",
                             fontSize = 13.sp,
@@ -289,15 +297,15 @@ fun PuzzleGameScreen(
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
                             text = currentPuzzle.question,
-                            fontSize = 19.sp,
+                            fontSize = 17.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF102A43),
-                            lineHeight = 28.sp
+                            lineHeight = 25.sp
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
                 // خيارات الإجابة
                 for (index in currentPuzzle.options.indices) {
@@ -325,7 +333,7 @@ fun PuzzleGameScreen(
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 4.dp),
+                            .padding(vertical = 2.dp),
                         shape = RoundedCornerShape(10.dp),
                         colors = ButtonDefaults.outlinedButtonColors(containerColor = buttonColor)
                     ) {
@@ -336,14 +344,14 @@ fun PuzzleGameScreen(
                             textAlign = TextAlign.Start,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 4.dp)
+                                .padding(vertical = 0.dp)
                         )
                     }
                 }
 
                 // عرض التلميح
                 if (showHint) {
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
                     Card(
                         colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF8E1)),
                         modifier = Modifier.fillMaxWidth()
@@ -364,7 +372,7 @@ fun PuzzleGameScreen(
                         rewardGiven -> "✅ إجابة صحيحة! +${Progress.CORRECT_REWARD} عملة"
                         else -> "✅ إجابة صحيحة (سبق أن حللت هذا السؤال)"
                     }
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
                     Card(
                         colors = CardDefaults.cardColors(
                             containerColor = if (wasCorrect) Color(0xFFD4EDDA) else Color(0xFFFFE0CC)
@@ -380,7 +388,7 @@ fun PuzzleGameScreen(
                     }
 
                     // عرض المعلومة التاريخية بعد الإجابة
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
                     Card(
                         colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD)),
                         modifier = Modifier.fillMaxWidth()
@@ -394,7 +402,7 @@ fun PuzzleGameScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             // أزرار التلميح والمكافأة
             Row(
