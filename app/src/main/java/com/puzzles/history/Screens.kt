@@ -187,7 +187,7 @@ fun HomeScreen(progress: Progress, onPlay: (String) -> Unit) {
 
         ModeCard(
             emoji = "🎯",
-            title = if (started) "تابع اللعب" else "ابدأ اللعب",
+            title = if (started) "تابع الحل" else "ابدأ الحل",
             subtitle = "كل الأقسام • السؤال ${allIndex + 1} من ${progress.totalQuestions}",
             from = Color(0xFFC2185B),
             to = Color(0xFF7B1F52),
@@ -266,7 +266,7 @@ private fun AchievementItem(achievement: Achievement, current: Int) {
                     )
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
-                        text = "$shown/${achievement.goal}",
+                        text = "$shown من ${achievement.goal}",
                         color = Color.White.copy(alpha = 0.7f),
                         fontSize = 13.sp
                     )
@@ -301,7 +301,7 @@ fun AchievementsScreen(progress: Progress) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "$unlocked / ${ACHIEVEMENTS.size}",
+                    text = "$unlocked من ${ACHIEVEMENTS.size}",
                     color = Color.White,
                     fontSize = 44.sp,
                     fontWeight = FontWeight.Bold
