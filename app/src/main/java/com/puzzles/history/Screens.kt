@@ -163,8 +163,7 @@ private fun ModeCard(
 
 @Composable
 fun HomeScreen(progress: Progress, onPlay: (String) -> Unit) {
-    val allIndex = progress.index(Progress.ALL)
-    val started = allIndex > 0 || progress.correctCount > 0
+    val started = progress.correctCount > 0
 
     Column(
         modifier = Modifier
@@ -188,7 +187,7 @@ fun HomeScreen(progress: Progress, onPlay: (String) -> Unit) {
         ModeCard(
             emoji = "🎯",
             title = if (started) "تابع الحل" else "ابدأ الحل",
-            subtitle = "كل الأقسام • السؤال ${allIndex + 1} من ${progress.totalQuestions}",
+            subtitle = "كل الأقسام • حللت ${progress.correctCount} من ${progress.totalQuestions}",
             from = Color(0xFFC2185B),
             to = Color(0xFF7B1F52),
             onClick = { onPlay(Progress.ALL) }

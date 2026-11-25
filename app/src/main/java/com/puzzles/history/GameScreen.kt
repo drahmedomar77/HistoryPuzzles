@@ -91,23 +91,23 @@ fun PuzzleGameScreen(
 
     var selectedCategory by remember { mutableStateOf(category) }
 
+    // الأسئلة التي لم تُحَلّ بعد فقط: السؤال المحلول لا يظهر ثانيةً لا في «الكل» ولا في القسم.
+    // القائمة تُحسب مرة عند الدخول/تغيير القسم حتى يبقى التنقل بالسابق/التالي مستقراً.
+    // وإن حُلّ القسم كاملاً تُعرض كل أسئلته للمراجعة.
     val filteredPuzzles = remember(selectedCategory) {
-        if (selectedCategory == Progress.ALL) {
+        val inCategory = if (selectedCategory == Progress.ALL) {
             PuzzleRepository.puzzles
         } else {
             PuzzleRepository.puzzles.filter { it.category == selectedCategory }
         }
+        val unsolved = inCategory.filter { it.id !in progress.correctIds }
+        if (unsolved.isEmpty()) inCategory else unsolved
     }
 
     if (filteredPuzzles.isEmpty()) return
 
-    // الموضع المحفوظ = أبعد سؤال وصل إليه اللاعب في هذا القسم
-    val savedIndex = remember(selectedCategory) {
-        val saved = progress.index(selectedCategory)
-        if (saved in filteredPuzzles.indices) saved else 0
-    }
-    var currentIndex by remember(selectedCategory) { mutableIntStateOf(savedIndex) }
-    var furthestIndex by remember(selectedCategory) { mutableIntStateOf(savedIndex) }
+    var currentIndex by remember(selectedCategory) { mutableIntStateOf(0) }
+    var furthestIndex by remember(selectedCategory) { mutableIntStateOf(0) }
 
     var showHint by remember { mutableStateOf(false) }
     var selectedOption by remember { mutableIntStateOf(-1) }
@@ -149,10 +149,7 @@ fun PuzzleGameScreen(
         }
         val next = (currentIndex + 1) % filteredPuzzles.size
         currentIndex = next
-        if (next == 0 || next > furthestIndex) {
-            furthestIndex = next
-            progress.setIndex(selectedCategory, next)
-        }
+        if (next > furthestIndex) furthestIndex = next
         resetQuestionState()
     }
 
